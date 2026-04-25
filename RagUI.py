@@ -1,6 +1,4 @@
-import streamlit as st
 from dotenv import load_dotenv
-import tempfile
 import os
 
 from langchain_community.document_loaders import PyPDFLoader
@@ -13,49 +11,46 @@ from langchain_core.prompts import ChatPromptTemplate
 
 load_dotenv()
 
-st.set_page_config(page_title="RAG Book Assistant")
+print("📚 RAG Book Assistant")
+print("=" * 50)
 
-st.title("📚 RAG Book Assistant")
-st.write("Upload a PDF and ask questions from the document")
+pdf_path = input("\nEnter PDF file path (or press Enter to skip): ").strip()
 
-uploaded_file = st.file_uploader("Upload a PDF book", type="pdf")
+if pdf_path and os.path.exists(pdf_path):
+    file_path = pdf_path
+    print("✓ PDF file found!")
 
+    create = input("Create vector database? (y/n): ").strip().lower()
 
-if uploaded_file:
+    if create == 'y':
+        print("\nProcessing document...")
 
-    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-        tmp_file.write(uploaded_file.read())
-        file_path = tmp_file.name
+        loader = PyPDFLoader(file_path)
+        docs = loader.load()
 
-    st.success("PDF uploaded successfully!")
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200
+        )
 
-    if st.button("Create Vector Database"):
+        chunks = splitter.split_documents(docs)
 
-        with st.spinner("Processing document..."):
-
-            loader = PyPDFLoader(file_path)
-            docs = loader.load()
-
-            splitter = RecursiveCharacterTextSplitter(
-                chunk_size=1000,
-                chunk_overlap=200
+        embeddings = MistralAIEmbeddings(
+            model="mistral-embed-2312"
             )
 
-            chunks = splitter.split_documents(docs)
+        vectorstore = Chroma.from_documents(
+            documents=chunks,
+            embedding=embeddings,
+            persist_directory="chroma_db"
+        )
 
-            embeddings = MistralAIEmbeddings(
-                model="mistral-embed-2312"
-                )
+        vectorstore.persist()
 
-            vectorstore = Chroma.from_documents(
-                documents=chunks,
-                embedding=embeddings,
-                persist_directory="chroma_db"
-            )
+        print("✓ Vector database created!")
 
-            vectorstore.persist()
-
-        st.success("Vector database created!")
+elif pdf_path:
+    print(f"Error: PDF file not found at '{pdf_path}'")
 
 
 
@@ -105,25 +100,35 @@ Question:
         ]
     )
 
-    st.divider()
-    st.subheader("Ask Questions From the PDF")
+    print("\n" + "=" * 50)
+    print("Ask Questions From the PDF")
+    print("(Type 'exit' to quit)")
+    print("=" * 50)
 
-    query = st.text_input("Enter your question")
+    while True:
+        query = input("\nYour question: ").strip()
 
-    if query:
+        if query.lower() == 'exit':
+            print("\nGoodbye!")
+            break
 
-        docs = retriever.invoke(query)
+        if query:
+            print("\nSearching...")
 
-        context = "\n\n".join(
-            [doc.page_content for doc in docs]
-        )
+            docs = retriever.invoke(query)
 
-        final_prompt = prompt.invoke({
-            "context": context,
-            "question": query
-        })
+            context = "\n\n".join(
+                [doc.page_content for doc in docs]
+            )
 
-        response = llm.invoke(final_prompt)
+            final_prompt = prompt.invoke({
+                "context": context,
+                "question": query
+            })
 
-        st.write("### AI Answer")
-        st.write(response.content)
+            response = llm.invoke(final_prompt)
+
+            print("\n### AI Answer:")
+            print(response.content)
+else:
+    print("\nNo vector database found. Please create one first by providing a PDF file.")
