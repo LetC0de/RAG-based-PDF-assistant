@@ -80,10 +80,13 @@ uploadButton.addEventListener('click', async () => {
             currentDocName.textContent = file.name;
             chatDocName.textContent = file.name;
 
+            // Save filename to localStorage
+            localStorage.setItem('currentDocumentName', file.name);
+
             // Add tooltips
-            currentDocName.title = `Current document: ${file.name}`;
-            chatDocName.title = `Current document: ${file.name}`;
-            chatDocIndicator.title = `Current document: ${file.name}`;
+            currentDocName.title = file.name;
+            chatDocName.title = file.name;
+            chatDocIndicator.title = file.name;
 
             progressText.textContent = `✓ Processed ${data.data.chunks_created} chunks in ${data.data.processing_time}`;
 
@@ -308,6 +311,9 @@ uploadNewButton.addEventListener('click', async () => {
                 chatHistory = [];
                 currentDocument = null;
 
+                // Clear saved filename from localStorage
+                localStorage.removeItem('currentDocumentName');
+
                 // Switch back to upload view
                 chatSection.style.display = 'none';
                 uploadSection.style.display = 'block';
@@ -362,15 +368,15 @@ async function checkHealth() {
         if (data.success) {
             if (data.data.vector_db_exists) {
                 // Database exists, show chat interface
-                currentDocument = 'Existing Document';
-                currentDocName.textContent = 'Document loaded';
-                chatDocName.textContent = 'Document loaded';
+                const savedFileName = localStorage.getItem('currentDocumentName') || 'Document loaded';
+                currentDocument = savedFileName;
+                currentDocName.textContent = savedFileName;
+                chatDocName.textContent = savedFileName;
 
                 // Add tooltips for existing document
-                const tooltipText = 'A document is already loaded. Click "Upload New" to change it.';
-                currentDocName.title = tooltipText;
-                chatDocName.title = tooltipText;
-                chatDocIndicator.title = tooltipText;
+                currentDocName.title = savedFileName;
+                chatDocName.title = savedFileName;
+                chatDocIndicator.title = savedFileName;
 
                 currentDocumentEl.style.display = 'block';
                 uploadSection.style.display = 'none';
