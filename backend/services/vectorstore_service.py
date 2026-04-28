@@ -11,7 +11,8 @@ def get_vectorstore():
     embeddings = MistralAIEmbeddings(model=Config.EMBEDDING_MODEL)
     vectorstore = Chroma(
         persist_directory=Config.CHROMA_PERSIST_DIR,
-        embedding_function=embeddings
+        embedding_function=embeddings,
+        collection_name="pdf_collection"
     )
     return vectorstore
 
