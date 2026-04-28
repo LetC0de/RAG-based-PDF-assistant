@@ -13,9 +13,19 @@ def process_pdf(file_path):
     # Delete existing database to avoid readonly errors
     if os.path.exists(Config.CHROMA_PERSIST_DIR):
         try:
+            # Force close any existing ChromaDB connections
+            import gc
+            gc.collect()  # Force garbage collection to close connections
+
+            # Wait a moment for connections to close
+            time.sleep(0.5)
+
+            # Now delete the database
             shutil.rmtree(Config.CHROMA_PERSIST_DIR)
+            print("Successfully deleted existing database")
         except Exception as e:
             print(f"Warning: Could not delete existing database: {e}")
+            # If deletion fails, try to continue anyway
 
     loader = PyPDFLoader(file_path)
     docs = loader.load()
