@@ -369,6 +369,13 @@ body {
     color: var(--color-success);
     font-size: 14px;
     font-weight: 500;
+    cursor: help;
+    transition: var(--transition);
+}
+
+.document-badge:hover {
+    background: rgba(124, 148, 115, 0.15);
+    transform: translateY(-1px);
 }
 
 .chat-section {
@@ -409,6 +416,39 @@ body {
     color: var(--color-success);
     font-size: 13px;
     font-weight: 500;
+    cursor: help;
+    transition: var(--transition);
+}
+
+.document-indicator:hover {
+    background: rgba(124, 148, 115, 0.15);
+    transform: translateY(-1px);
+}
+
+.chat-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.upload-new-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
+    border: none;
+    border-radius: var(--radius);
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'DM Sans', sans-serif;
+}
+
+.upload-new-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
 }
 
 .clear-chat-button {
@@ -722,6 +762,17 @@ body {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
+    }
+
+    .chat-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .upload-new-button,
+    .clear-chat-button {
+        width: 100%;
+        justify-content: center;
     }
 
     .chat-title {

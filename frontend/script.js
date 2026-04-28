@@ -20,6 +20,7 @@ const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
 const sendButton = document.getElementById('sendButton');
 const clearChatButton = document.getElementById('clearChatButton');
+const uploadNewButton = document.getElementById('uploadNewButton');
 const statusIndicator = document.getElementById('statusIndicator');
 const chatDocIndicator = document.getElementById('chatDocIndicator');
 const chatDocName = document.getElementById('chatDocName');
@@ -78,6 +79,11 @@ uploadButton.addEventListener('click', async () => {
             currentDocument = file.name;
             currentDocName.textContent = file.name;
             chatDocName.textContent = file.name;
+
+            // Add tooltips
+            currentDocName.title = `Current document: ${file.name}`;
+            chatDocName.title = `Current document: ${file.name}`;
+            chatDocIndicator.title = `Current document: ${file.name}`;
 
             progressText.textContent = `✓ Processed ${data.data.chunks_created} chunks in ${data.data.processing_time}`;
 
@@ -284,6 +290,54 @@ clearChatButton.addEventListener('click', () => {
     }
 });
 
+// Upload New Document Handler
+uploadNewButton.addEventListener('click', async () => {
+    if (confirm('Upload a new document? This will delete the current database and chat history.')) {
+        updateStatus('processing', 'Deleting database...');
+
+        try {
+            // Delete the current database
+            const response = await fetch(`${API_BASE_URL}/documents`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.success || data.error?.code === 'VECTOR_DB_NOT_FOUND') {
+                // Clear chat history
+                chatHistory = [];
+                currentDocument = null;
+
+                // Switch back to upload view
+                chatSection.style.display = 'none';
+                uploadSection.style.display = 'block';
+                currentDocumentEl.style.display = 'none';
+
+                // Reset file input
+                fileInput.value = '';
+                selectedFile.style.display = 'none';
+                uploadButton.disabled = true;
+
+                updateStatus('ready', 'Ready');
+            } else {
+                throw new Error(data.error?.message || 'Failed to delete database');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            showError('Failed to delete database. You can still upload a new document.');
+
+            // Even if delete fails, allow switching to upload view
+            chatSection.style.display = 'none';
+            uploadSection.style.display = 'block';
+            currentDocumentEl.style.display = 'none';
+            fileInput.value = '';
+            selectedFile.style.display = 'none';
+            uploadButton.disabled = true;
+            updateStatus('ready', 'Ready');
+        }
+    }
+});
+
 // Update Status Indicator
 function updateStatus(status, text) {
     statusIndicator.className = `status-indicator ${status}`;
@@ -311,6 +365,13 @@ async function checkHealth() {
                 currentDocument = 'Existing Document';
                 currentDocName.textContent = 'Document loaded';
                 chatDocName.textContent = 'Document loaded';
+
+                // Add tooltips for existing document
+                const tooltipText = 'A document is already loaded. Click "Upload New" to change it.';
+                currentDocName.title = tooltipText;
+                chatDocName.title = tooltipText;
+                chatDocIndicator.title = tooltipText;
+
                 currentDocumentEl.style.display = 'block';
                 uploadSection.style.display = 'none';
                 chatSection.style.display = 'block';
