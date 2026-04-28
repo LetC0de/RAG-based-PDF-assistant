@@ -1,5 +1,6 @@
 import os
 import time
+import shutil
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_mistralai import MistralAIEmbeddings
@@ -8,6 +9,13 @@ from config import Config
 
 def process_pdf(file_path):
     start_time = time.time()
+
+    # Delete existing database to avoid readonly errors
+    if os.path.exists(Config.CHROMA_PERSIST_DIR):
+        try:
+            shutil.rmtree(Config.CHROMA_PERSIST_DIR)
+        except Exception as e:
+            print(f"Warning: Could not delete existing database: {e}")
 
     loader = PyPDFLoader(file_path)
     docs = loader.load()
