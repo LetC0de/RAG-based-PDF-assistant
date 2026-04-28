@@ -366,25 +366,9 @@ async function checkHealth() {
         const data = await response.json();
 
         if (data.success) {
-            if (data.data.vector_db_exists) {
-                // Database exists, show chat interface
-                const savedFileName = localStorage.getItem('currentDocumentName') || 'Document loaded';
-                currentDocument = savedFileName;
-                currentDocName.textContent = savedFileName;
-                chatDocName.textContent = savedFileName;
-
-                // Add tooltips for existing document
-                currentDocName.title = savedFileName;
-                chatDocName.title = savedFileName;
-                chatDocIndicator.title = savedFileName;
-
-                currentDocumentEl.style.display = 'block';
-                uploadSection.style.display = 'none';
-                chatSection.style.display = 'block';
-                updateStatus('ready', 'Ready');
-            } else {
-                updateStatus('ready', 'Ready');
-            }
+            // Always start with upload screen on refresh (stateless behavior)
+            // Ignore vector_db_exists - user must explicitly upload each session
+            updateStatus('ready', 'Ready');
         }
     } catch (error) {
         console.error('Health check failed:', error);
